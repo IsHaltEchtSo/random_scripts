@@ -7,5 +7,6 @@ PATH = os.path.join(ROOT + DIRECTORY)
 
 # To detect the files that need to be renamed
 FILE_PREFIX = "[Meganebuk]"
-FILE_SUFFIX = "(Eng).pdf"
+FILE_SUFFIX = "(Eng)"
+FILE_FORMAT = ".pdf"
 EXTRACTION_DETAIL = -5
