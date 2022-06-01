@@ -1,10 +1,11 @@
 import os
 
+
 ROOT = "/Users/deniz"
-DIRECTORY = "/desktop"
+DIRECTORY = "/desktop/vagabond-manga"
 PATH = os.path.join(ROOT + DIRECTORY)
 
-# which detail to extract from the file's name
+# To detect the files that need to be renamed
+FILE_PREFIX = "[Meganebuk]"
+FILE_SUFFIX = "(Eng).pdf"
 EXTRACTION_DETAIL = -5
-# suffix pattern to decide which file to change
-FILE_SUFFIX = ""

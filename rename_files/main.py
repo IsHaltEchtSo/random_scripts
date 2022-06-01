@@ -1,20 +1,33 @@
 # import dependencies
-from config import *
+import os
+from typing import List
+from config import \
+    PATH, FILE_PREFIX, FILE_SUFFIX
+
+
+def rename_files(prefix: str, suffix: str, files: List[str]):
+    """
+    Strip the files off of their prefixes and suffixes.
+    """
+    for file in files:
+        if file.startswith(prefix) and file.endswith(suffix):
+            # TODO: for some reason, l-/rstrip also strips some of the `main` characters
+            # if the suffix/prefix is provided a whitespace. For now, excluding whitespaces
+            # and calling an additional strip() handles this problem.
+            new_file_name = file.lstrip(prefix).rstrip(suffix).strip()  
+
+            os.rename(
+                PATH + f"/{file}",
+                PATH + f"/{new_file_name}.pdf"
+            )
+
+            print(f"Successfully changed `{file}` to `{new_file_name}`!")
 
 
 def main():
-    # load the files from the directory
     files = os.listdir(PATH)
 
-    # loop through all files of the directory
-    for file in files:
-        if file.endswith(FILE_SUFFIX):
-            # change each file to another name
-            num = file[EXTRACTION_DETAIL]
-            os.rename(
-                PATH + f"/{file}",
-                PATH + f"/{num}.jpg"
-            )
+    rename_files(prefix=FILE_PREFIX, suffix=FILE_SUFFIX, files=files)
 
 
 if __name__ == "__main__":
