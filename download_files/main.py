@@ -1,4 +1,5 @@
 import os
+from urllib.error import HTTPError
 import urllib.request
 from typing import Tuple
 
@@ -7,11 +8,26 @@ from config import \
 
 # TODO: make the CLIX prettier
 
+
+def prettify_clix(func):
+    """
+    Prettify the CLI-Experience for the user.
+    """
+    def wrapper(*args, **kwargs):
+        print("--------------------------------------------------------\n")
+
+        func(*args, **kwargs)
+
+        print("\n--------------------------------------------------------")
+
+    return wrapper
+
+
+@prettify_clix
 def greet_user(resource_name: str, resource_url: str) -> None:
     """
     info text so the user knows what's going on
     """
-    print(".    .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .\n")  # TODO: turn this into a decorator for main
     print(f"YOU ARE ABOUT TO DOWNLOAD FILES OF `{resource_name}`")
     print(f"FROM `{resource_url}`!")
 
@@ -21,14 +37,15 @@ def map_chapter(chapter_number: int) -> int:
     Sometimes, in-between chapters exist and mess up with enumeration of the chapters.
     Here you can specify where these in-between chapters appear to exclude them.
     """
+    chapter_index = chapter_number
+
     # chapter 1 starts at index 0
-    if chapter_number < 323:
+    # chapter 324 is at index 324
+    if chapter_number <= 323:
         chapter_index = chapter_number - 1
 
-    # chapter 323 is a special in-between chapter that needs to be excluded
-    # hence, from index 324 onwards, index == chapter number
-    elif chapter_number > 323:
-        chapter_index = chapter_number
+    
+        
     
     return chapter_number, chapter_index
 
@@ -38,7 +55,7 @@ def get_chapter_and_pages() -> Tuple[int, int]:
     get user input about chapter number and amount of images to download
     """
     chapter = int(input("WHICH CHAPTER DO YOU WANT? \n >>> "))
-    pages = int(input("WHAT IS THE LAST IMAGE NUMBER OF THAT CHAPTER? \n >>> "))
+    pages = int(input("HOW MANY PAGES IN THAT CHAPTER? \n >>> "))
 
     return chapter, pages
 
@@ -98,6 +115,7 @@ def download_from_url_to_target_dir(download_url: str, target_dir: str, page: in
     file_opener.retrieve(url=download_url, filename=file_name)
 
 
+@prettify_clix
 def print_success_message(manga:str, chapter:int, pages:int) -> None:
     """
     Let the user know that his download was successful.
@@ -105,12 +123,12 @@ def print_success_message(manga:str, chapter:int, pages:int) -> None:
     print(f"Download complete for chapter {chapter} of Manga {manga}: pages 1 - {pages}")
 
 
-# TODO: implement this message
+@prettify_clix
 def print_terminating_message() -> None:
     """
     Display a message so that the user knows the program has been terminated successfully.
     """
-    pass
+    print("Downloading the chapters was easy, wasn't it? \nSee you next time!")
 
 
 def main():
@@ -132,7 +150,7 @@ def main():
 
         # loop through all images
         for page in range(1, pages + 1):
-
+            
             # construct URL and download the file for every page
             download_url = construct_dl_url(
                 url=RESOURCE_URL_STR, 
@@ -140,19 +158,26 @@ def main():
                 page=page, 
                 file_format=RESOURCE_FORMAT,
             )
-
-            download_from_url_to_target_dir(
-                download_url=download_url, 
-                target_dir=TARGET_DIR,
-                page=page,
-                file_format=RESOURCE_FORMAT,
-            )
+            try:
+                download_from_url_to_target_dir(
+                    download_url=download_url, 
+                    target_dir=TARGET_DIR,
+                    page=page,
+                    file_format=RESOURCE_FORMAT,
+                )
+            except HTTPError:
+                download_from_url_to_target_dir(
+                    download_url=download_url.rstrip(RESOURCE_FORMAT) + ".png", 
+                    target_dir=TARGET_DIR,
+                    page=page,
+                    file_format=RESOURCE_FORMAT,
+                )
 
         # print 'DL complete for chapter X of Manga Y: pages 1 - Z'
         print_success_message(manga=RESOURCE_NAME, chapter=chapter, pages=pages)
 
         # upon downloading the chapter, ask the user whether he wants to dl more
-        user_input = input("Want to download another chapter? If so, press anything. If not, type `0`.")
+        user_input = input("Want to download another chapter? If so, press anything. If not, type `0`.\n >>> ")
 
         if user_input == '0':
             break
