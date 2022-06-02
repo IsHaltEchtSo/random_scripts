@@ -5,6 +5,7 @@ from typing import Tuple
 from config import \
     RESOURCE_NAME, RESOURCE_URL_STR, RESOURCE_FORMAT, PATH
 
+# TODO: make the CLIX prettier
 
 def greet_user(resource_name: str, resource_url: str) -> None:
     """
@@ -104,43 +105,59 @@ def print_success_message(manga:str, chapter:int, pages:int) -> None:
     print(f"Download complete for chapter {chapter} of Manga {manga}: pages 1 - {pages}")
 
 
+# TODO: implement this message
+def print_terminating_message() -> None:
+    """
+    Display a message so that the user knows the program has been terminated successfully.
+    """
+    pass
+
+
 def main():
     # give instructions to the user
     greet_user(
         resource_name=RESOURCE_NAME, 
         resource_url=RESOURCE_URL_STR
     )
+    while True:
+        # ask for chapter and number of pages
+        chapter, pages = get_chapter_and_pages()
 
-    # ask for chapter and number of pages
-    chapter, pages = get_chapter_and_pages()
+        # check whether the manga and the chapters have a directory, else create them
+        check_for_manga_and_chapter_directory(path=PATH, chapter=chapter)
 
-    # check whether the manga and the chapters have a directory, else create them
-    check_for_manga_and_chapter_directory(path=PATH, chapter=chapter)
+        # hold real chapter number and index of the chapter stored on the desired website
+        chapter_number, chapter_index = map_chapter(chapter_number=chapter)
+        TARGET_DIR = os.path.join(PATH, f"chapter-{chapter_number}")
 
-    # hold real chapter number and index of the chapter stored on the desired website
-    chapter_number, chapter_index = map_chapter(chapter_number=chapter)
-    TARGET_DIR = os.path.join(PATH, f"chapter-{chapter_number}")
+        # loop through all images
+        for page in range(1, pages + 1):
 
-    # loop through all images
-    for page in range(1, pages + 1):
+            # construct URL and download the file for every page
+            download_url = construct_dl_url(
+                url=RESOURCE_URL_STR, 
+                chapter_index=chapter_index, 
+                page=page, 
+                file_format=RESOURCE_FORMAT,
+            )
 
-        # construct URL and download the file for every page
-        download_url = construct_dl_url(
-            url=RESOURCE_URL_STR, 
-            chapter_index=chapter_index, 
-            page=page, 
-            file_format=RESOURCE_FORMAT,
-        )
+            download_from_url_to_target_dir(
+                download_url=download_url, 
+                target_dir=TARGET_DIR,
+                page=page,
+                file_format=RESOURCE_FORMAT,
+            )
 
-        download_from_url_to_target_dir(
-            download_url=download_url, 
-            target_dir=TARGET_DIR,
-            page=page,
-            file_format=RESOURCE_FORMAT,
-        )
+        # print 'DL complete for chapter X of Manga Y: pages 1 - Z'
+        print_success_message(manga=RESOURCE_NAME, chapter=chapter, pages=pages)
 
-    # print 'DL complete for chapter X of Manga Y: pages 1 - Z'
-    print_success_message(manga=RESOURCE_NAME, chapter=chapter, pages=pages)
+        # upon downloading the chapter, ask the user whether he wants to dl more
+        user_input = input("Want to download another chapter? If so, press anything. If not, type `0`.")
+
+        if user_input == '0':
+            break
+
+    print_terminating_message()
 
 
 if __name__ == "__main__":
